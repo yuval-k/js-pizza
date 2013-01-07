@@ -1,3 +1,6 @@
+// python version:
+// https://launchpad.net/pyzza
+
 /*
     modulo - int
     names - list
@@ -54,7 +57,7 @@ function compareArrays(a1,a2) {
     }
     return true;
 }
-
+SLICES_IN_PIZZA = 8;
 function solve(names, toppings, amounts,
     modulo, all_edible_orig) {
     /*
@@ -64,8 +67,8 @@ function solve(names, toppings, amounts,
     amounts - dict {name: set([int])}
     all_edible - set([(name, topping)])
     */
-    if ((modulo % 8 != 0) && (8 % modulo != 0))
-        throw "Bad value for modulo";
+    if ((modulo % SLICES_IN_PIZZA != 0) && (SLICES_IN_PIZZA % modulo != 0))
+        throw new Error("Bad value for modulo");
     
     all_edible = new Array();
     for (ind in all_edible_orig) {
@@ -80,14 +83,17 @@ function solve(names, toppings, amounts,
         maxSum += Math.max.apply(null, amounts[nm])    
     }
     var sumGood = false;
-    for(a in range(minSum, maxSum)) {
-        if( a % 8 == 0){
+    minToMax = range(minSum, maxSum);
+    for(ind in minToMax) {
+        var a = minToMax[ind];
+        // make sure that we can fit a pizza within all the slices
+        if( a % SLICES_IN_PIZZA == 0){
             sumGood = true;
             break;
         }
     }
     if(!sumGood)
-        throw "Slices don't make up a pizza!";
+        throw new Error("Slices don't make up a pizza!");
 
 
     problem = csp.DiscreteProblem();
@@ -161,7 +167,7 @@ function solve(names, toppings, amounts,
     }
     sumModuloConstraint = function() {
        return doSum.apply(null, arguments) % this == 0;
-    }.bind(8);
+    }.bind(SLICES_IN_PIZZA);
     problem.addConstraint(all_edible, sumModuloConstraint);
     
     var res = problem.getSolutions();
@@ -178,7 +184,61 @@ function solve(names, toppings, amounts,
     return r;
 }
 
-return {solve: solve};
+
+
+function getSlicesFromRes(res){
+    var slices = {};
+    for (ind2 in res) {
+        var record = res[ind2];
+        k = record[0];
+        var name = k[0];
+        var topping = k[1];
+        amnt = record[1];
+
+        if (slices[topping]) {
+            slices[topping] += amnt;
+        } else {
+            slices[topping] = amnt;
+        }
+
+    }
+    return slices;
+}
+
+function putInRecords(records, slices, record) {
+    // now the slices is full!
+    // save the all the records that lead to the same slices in the same place.
+   for (i = 0; i < records.length; ++i) {
+        sl = records[i][0];
+        var wasFound = true;
+        for (k in sl) {
+            if (sl[k] != slices[k]) {
+                wasFound = false;
+                break;
+            }
+        }
+        if (wasFound) {
+            records[i][1].push(record);
+            return true;
+        }
+    }
+    // not found, push it clean..
+    records.push([slices, [res]]);
+    return false;
+}
+
+function parseToRecords(r) {
+    var records = [];
+        for (ind in r) {
+            res = r[ind];
+            slices = getSlicesFromRes(res);
+            putInRecords(records, slices, res);
+        }
+
+    return records;
+}
+
+return {solve: solve, parseToRecords: parseToRecords};
 }
 
 define('solver',['csp'], solverModule);

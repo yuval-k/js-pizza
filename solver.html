@@ -9,22 +9,22 @@
         var amounts = {"yuval":[4,8], "gadi":[4,8]};
         var modulo = 4;
         var all_edible = [["yuval", "mushroom"], ["gadi", "mushroom"], ["yuval", "onion"]];
-        
+
         var r = solver.solve(names, toppings, amounts, modulo, all_edible);
         var s = ""
         for (ind in r) {
             res = r[ind];
             for (k in res) {
-                s += k + ":" + res[k] + "; "   
+                s += k + ":" + res[k] + "; "
             }
-            s += "\n";    
+            s += "\n";
         }
-    //    alert("r:\n" + s ); 
+    //    alert("r:\n" + s );
     });
-    
+
     </script>
-    
-    
+
+
 <script  type="text/javascript" >
 var names = ["yuval","gadi"];
 var toppings = ["mushroom","onion"];
@@ -54,11 +54,11 @@ function save() {
               values[inp.id] = inp.value;
           }
         }
-        
-        locaulStorage.setItem('values', JSON.stringify(values));
+
+        localStorage.setItem('values', JSON.stringify(values));
     }
 }
-  
+
 function getValues() {
     var values = {};
     if(hasStorage) {
@@ -79,15 +79,15 @@ function createRow(name) {
     if (values && values[mntId]) {
       mnt = values[mntId]
     }
-    s += '<td><input type="number" id="' + mntId + '" min="0" value="'+mnt+'"></td>';
-    
+    s += '<td><input type="number" onchange="javascript:calc();" id="' + mntId + '" min="0" value="'+mnt+'"></td>';
+
     for (tind in toppings) {
         var checked = "";
         var chId = "nt_" + names[ind] + ";" + toppings[tind] ;
         if (values && values[chId]) {
             checked = values[chId] ? "checked" : "";
         }
-        s+= "<td><input type='checkbox' id='" +chId+ "' " + checked + "/> </td>";
+        s+= "<td><input type='checkbox' onchange='javascript:calc();'  id='" +chId+ "' " + checked + "/> </td>";
     }
     return s;
 }
@@ -100,7 +100,7 @@ function getAllEatable () {
            var top  = toppings[tind];
            var checkBox = document.getElementById("nt_"+name+";"+top);
            if (checkBox && checkBox.checked) {
-               alleatable.push([name, top]) 
+               alleatable.push([name, top])
            }
         }
     }
@@ -118,70 +118,26 @@ function getAmounts () {
 }
 
 
-function getSlicesFromRes(res){
-    var slices = {};
-    for (ind2 in res) {
-        var record = res[ind2];
-        k = record[0];
-        var name = k[0];
-        var topping = k[1];
-        amnt = record[1];
-        
-        if (slices[topping]) {
-            slices[topping] += amnt;
-        } else {
-            slices[topping] = amnt;
-        }
-        
-    }
-    return slices;
-}
-
-function putInRecords(records, slices, record) {
-    // now the slices is full!
-    // save the all the records that lead to the same slices in the same place.
-   for (i = 0; i < records.length; ++i) {
-        sl = records[i][0];
-        var wasFound = true;
-        for (k in sl) {
-            if (sl[k] != slices[k]) {
-                wasFound = false;
-                break;
-            }
-        }
-        if (wasFound) {
-            records[i][1].push(record);
-            return true;
-        }
-    }
-    // not found, push it clean..
-    records.push([slices, [res]]);
-    return false;
-}
-
 function calc() {
-    
+
     var amounts = getAmounts();
     var all_edible = getAllEatable();
     var modulo = 4;
-    
+
    require(["solver"], function(solver) {
 
-        var r = solver.solve(names, toppings, amounts, modulo, all_edible);
-        var records = [];
-        for (ind in r) {
-            res = r[ind];
-            slices = getSlicesFromRes(res);
-            putInRecords(records, slices, res);
-        }
-    
-        var report = generateReport(records);
-      
+       var report = "";
+       try {
+        records = solver.parseToRecords(solver.solve(names, toppings, amounts, modulo, all_edible));
+        report = generateReport(records);
+       } catch (err) {
+           report = "Error: " + err.message;
+       }
         document.getElementById("results").innerHTML =  report;
-        save();      
-        return records;
-   });    
- }  
+        save();
+   });
+ }
+ 
  function generateReport(records) {
     var report = "";
     for (ind in records) {
@@ -190,13 +146,13 @@ function calc() {
     for (i = 0; i < toppings.length; ++i) {
         var topping = toppings[i];
         if (slices[topping]) {
-            p += topping + ": " + slices[topping]; 
+            p += topping + ": " + slices[topping];
         } else {
             p += topping + ": " + 0;
         }
         p += " ";
     }
-    
+
     var s = ""
     for(indr in records[ind][1]) {
         res =  records[ind][1][indr];
@@ -206,23 +162,23 @@ function calc() {
             var name = k[0];
             var topping = k[1];
             amnt = record[1];
-            s += k + ":" + amnt + "; "   
+            s += k + ":" + amnt + "; "
         }
         s += "<br/>\n";
     }
-    
+
     report = report + "<details><summary>" + p + "</summary>" + s + "</details>";
     }
     return report;
 }
 </script>
-    
+
 </head>
 <body>
 <table id="data">
 <tr>
-<th>Name</th>
-<th>Amount</th>
+    <th>Name</th>
+    <th>Amount</th>
     <script  type="text/javascript" >
     for (ind in toppings) {
         document.write("<th>" + toppings[ind] + "</th>");
@@ -240,6 +196,10 @@ function calc() {
 <button onclick="javascript:calc();">calc</button>
 <div id="results">
 </div>
+
+<script type="text/javascript" >
+calc();
+</script>
 
 </body>
 
