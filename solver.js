@@ -58,23 +58,11 @@ function compareArrays(a1,a2) {
     return true;
 }
 SLICES_IN_PIZZA = 8;
-function solve(names, toppings, amounts,
-    modulo, all_edible_orig) {
-    /*
-    modulo - int
-    names - list
-    toppings - list
-    amounts - dict {name: set([int])}
-    all_edible - set([(name, topping)])
-    */
+
+function validate(names, toppings, amounts, modulo, all_edible_orig) {
     if ((modulo % SLICES_IN_PIZZA != 0) && (SLICES_IN_PIZZA % modulo != 0))
         throw new Error("Bad value for modulo");
     
-    all_edible = new Array();
-    for (ind in all_edible_orig) {
-        nameAndTopping = all_edible_orig[ind];
-        all_edible.push(getVarFor(nameAndTopping[0], nameAndTopping[1]));
-    }
     // check that total sum of amounts is possible at all
     minSum = 0;
     maxSum = 0;
@@ -94,9 +82,20 @@ function solve(names, toppings, amounts,
     }
     if(!sumGood)
         throw new Error("Slices don't make up a pizza!");
+}
 
-
-    problem = csp.DiscreteProblem();
+function convertEdiblesCauseJsIsStupid(all_edible_orig) {
+    // js sucks, so I need to convert this data struct to a list of strings,
+    // that can be used as dictoinary keys.
+    var all_edible = new Array();
+    for (ind in all_edible_orig) {
+        nameAndTopping = all_edible_orig[ind];
+        all_edible.push(getVarFor(nameAndTopping[0], nameAndTopping[1]));
+    }
+    return all_edible;
+}
+   
+function addVariables(problem, names, toppings, all_edible) {
     var name_vars = {};
     for( ind in names) {
         var n = names[ind];
@@ -115,7 +114,10 @@ function solve(names, toppings, amounts,
             problem.addVariable(v, domain);
         }
     }
-    
+    return name_vars;
+}
+
+function addPeopleConstraints(problem, names, name_vars,amounts) {
     for (ind in names) {
         var n = names[ind];
         var nameAmounts = amounts[n];
@@ -148,7 +150,9 @@ function solve(names, toppings, amounts,
             }
         }
     }
-    
+}
+
+function addToppingConstraints(problem, names, toppings, modulo, all_edible) {
     for(indt in toppings) {
         var t = toppings[indt]
         tvars = new Array();
@@ -165,26 +169,56 @@ function solve(names, toppings, amounts,
         sumModuloConstraint.name = "sumModuloConstraint";
         problem.addConstraint(tvars, sumModuloConstraint);
     }
+}
+
+function addCreateAWholePizzaConstraint(all_edible) {
     sumModuloConstraint = function() {
        return doSum.apply(null, arguments) % this == 0;
     }.bind(SLICES_IN_PIZZA);
     problem.addConstraint(all_edible, sumModuloConstraint);
-    
-    var res = problem.getSolutions();
+}
+
+function parseResults(res) {
     var r = []
     
     for (ind in res) {
         var tmpD = [];
         for (k in res[ind]) {
+            // unconvert the strings to the original [name, topping] pair
             tmpD.push([getNTForVar(k), res[ind][k]]);
         }
         r.push(tmpD);   
     }
-    
-    return r;
+    return r;    
 }
 
+function solve(names, toppings, amounts,
+    modulo, all_edible_orig) {
+    /*
+    modulo - int
+    names - list
+    toppings - list
+    amounts - dict {name: set([int])}
+    all_edible - set([(name, topping)])
+    */
+  
+    validate(names, toppings, amounts, modulo, all_edible_orig);
+    
+    var all_edible = convertEdiblesCauseJsIsStupid(all_edible_orig);
+    
 
+    problem = csp.DiscreteProblem();
+    var name_vars = addVariables(problem, names, toppings, all_edible);
+ 
+    addPeopleConstraints(problem, names, name_vars,amounts);
+    addToppingConstraints(problem, names, toppings, modulo, all_edible);
+
+    addCreateAWholePizzaConstraint(all_edible);
+
+    var res = problem.getSolutions();
+
+    return parseResults(res);
+}
 
 function getSlicesFromRes(res){
     var slices = {};
