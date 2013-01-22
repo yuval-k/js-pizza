@@ -17,6 +17,8 @@ require.config({
   
 function solverModule(csp) {
     
+SLICES_IN_PIZZA = 8;
+
 
 function rangeTo(max) {
     return range(0, max);
@@ -57,7 +59,6 @@ function compareArrays(a1,a2) {
     }
     return true;
 }
-SLICES_IN_PIZZA = 8;
 
 function validate(names, toppings, amounts, modulo, all_edible_orig) {
     if ((modulo % SLICES_IN_PIZZA != 0) && (SLICES_IN_PIZZA % modulo != 0))
@@ -192,8 +193,7 @@ function parseResults(res) {
     return r;    
 }
 
-function solve(names, toppings, amounts,
-    modulo, all_edible_orig) {
+function solve(names, toppings, amounts, modulo, all_edible_orig) {
     /*
     modulo - int
     names - list

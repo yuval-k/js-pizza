@@ -1,19 +1,21 @@
 <html>
 <head>
 
-	<script data-main="solver" type="text/javascript" src="lib/require.js"></script>
+<script data-main="solver" type="text/javascript" src="lib/require.js"></script>
   
 <script  type="text/javascript" >
 // Edit these two variables:
 var names = ["Alice","Bob"];
-var toppings = ["Mmushrooms","Onion", "Olives"];
+var toppings = ["Regular", "Mushrooms","Onion", "Olives"];
 // a topping must be on at least this much slices (usually, half a pizza =4)
-var MIN_SLICES_FOR_TOPPING = 4
+var MIN_SLICES_FOR_TOPPING = 4;
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Feature test (http://mathiasbynens.be/notes/localstorage-pattern)
 var hasStorage = (function() {
       try {
-        var mod = "testlocalstoragefeature"
+        var mod = "testlocalstoragefeature";
         localStorage.setItem(mod, mod);
         localStorage.removeItem(mod);
         return true;
@@ -36,6 +38,8 @@ function save() {
               values[inp.id] = inp.value;
           }
         }
+        
+        values["names"] = names;
 
         localStorage.setItem('values', JSON.stringify(values));
     }
@@ -57,7 +61,7 @@ function createRow(name) {
     s = "";
     s += "<td>" + name + "</td>";
     var mnt  = "0";
-    var mntId = "amnt_"+names[ind];
+    var mntId = "amnt_"+name;
     if (values && values[mntId]) {
       mnt = values[mntId]
     }
@@ -65,7 +69,7 @@ function createRow(name) {
 
     for (tind in toppings) {
         var checked = "";
-        var chId = "nt_" + names[ind] + ";" + toppings[tind] ;
+        var chId = "nt_" + name + ";" + toppings[tind] ;
         if (values && values[chId]) {
             checked = values[chId] ? "checked" : "";
         }
@@ -82,7 +86,7 @@ function getAllEatable () {
            var top  = toppings[tind];
            var checkBox = document.getElementById("nt_"+name+";"+top);
            if (checkBox && checkBox.checked) {
-               alleatable.push([name, top])
+               alleatable.push([name, top]);
            }
         }
     }
@@ -90,7 +94,7 @@ function getAllEatable () {
 }
 
 function getAmounts () {
-    amounts = {}
+    amounts = {};
     for (ind in names) {
         var name = names[ind];
         var inp = document.getElementById("amnt_"+name);
@@ -106,8 +110,8 @@ function calc() {
     var all_edible = getAllEatable();
     var modulo = MIN_SLICES_FOR_TOPPING;
 
-   require(["solver"], function(solver) {
-
+    require(["solver"], function(solver) {
+    
        var report = "";
        try {
         records = solver.parseToRecords(solver.solve(names, toppings, amounts, modulo, all_edible));
@@ -117,8 +121,8 @@ function calc() {
        }
         document.getElementById("results").innerHTML =  report;
         save();
-   });
- }
+    });
+}
  
  function generateReport(records) {
     var report = "";
@@ -144,7 +148,7 @@ function calc() {
             var name = k[0];
             var topping = k[1];
             amnt = record[1];
-            s += k + ":" + amnt + "; "
+            s += k + ":" + amnt + "; ";
         }
         s += "<br/>\n";
     }
@@ -152,6 +156,30 @@ function calc() {
     report = report + "<details><summary>" + p + "</summary>" + s + "</details>";
     }
     return report;
+}
+</script>
+
+<script  type="text/javascript" >
+// init names
+
+var nms = getValues()["names"];
+if (nms) {
+    names = nms;
+}
+
+function addName(name) {
+    names.push(name);
+    var table = document.getElementById("data");
+    var row = table.insertRow(table.rows.length-1);
+    row.innerHTML = createRow(name);
+}
+
+function promptName() {
+     var name = prompt("Add name");
+     if (name) {
+         addName(name);
+         save();
+     }
 }
 </script>
 
@@ -167,12 +195,16 @@ function calc() {
     }
     </script>
 </tr>
-    <script  type="text/javascript" >
+   <script  type="text/javascript" >
     for (ind in names) {
         document.write("<tr>" + createRow(names[ind]) + "</tr>");
     }
     </script>
-
+<tr>
+<td>
+<button onclick="javascript:promptName()">+</button>
+</td>
+</tr>
 </table>
 <!-- no need for button. everything is caluclated on change 
 <button onclick="javascript:calc();">calc</button> 
