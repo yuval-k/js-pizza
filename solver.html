@@ -1,6 +1,10 @@
 <html>
 <head>
-
+<style>
+.tablerow:hover {
+background-color: rgb(255, 255, 140);
+}
+</style>
 <script data-main="solver" type="text/javascript" src="lib/require.js"></script>
   
 <script  type="text/javascript" >
@@ -40,6 +44,7 @@ function save() {
         }
         
         values["names"] = names;
+        values["toppings"] = toppings;
 
         localStorage.setItem('values', JSON.stringify(values));
     }
@@ -162,15 +167,25 @@ function calc() {
 <script  type="text/javascript" >
 // init names
 
-var nms = getValues()["names"];
-if (nms) {
-    names = nms;
+function restoreValues() {
+    values = getValues();
+    var tmp = values["names"];
+    if (tmp) {
+        names = tmp;
+    }
+    tmp = values["toppings"];
+    if (tmp) {
+        toppings = tmp;
+    }
 }
+
+restoreValues();
 
 function addName(name) {
     names.push(name);
     var table = document.getElementById("data");
     var row = table.insertRow(table.rows.length-1);
+    row.className = "tablerow"
     row.innerHTML = createRow(name);
 }
 
@@ -181,11 +196,40 @@ function promptName() {
          save();
      }
 }
+
+
+function addTopping(topp) {
+    toppings.push(topp);
+    var table = document.getElementById("data");
+    
+    var toppingHeader = document.createElement('th');
+    	toppingHeader.appendChild(document.createTextNode(topp));
+    	theadRow = table.tHead.rows[0];
+    	// the last element is the + button
+    	theadRow.insertBefore(toppingHeader, theadRow.children[theadRow.children.length-1]);
+
+	var nameRows = table.tBodies[0];
+	for (var i = 0; i <  nameRows.rows.length; i++) {
+		var newCell = nameRows.rows[i].insertCell(-1);
+		
+        var chId = "nt_" + names[i] + ";" + topp ;
+		newCell.innerHTML = "<input type='checkbox' onchange='javascript:calc();'  id='" +chId+ "' />";
+	}
+}
+
+function promptTopping() {
+     var topp = prompt("Add topping");
+     if (topp) {
+         addTopping(topp);
+         save();
+     }
+}
+
 </script>
 
 </head>
 <body>
-<table id="data">
+<table id="data"><thead>
 <tr>
     <th>Name</th>
     <th>Amount</th>
@@ -194,17 +238,25 @@ function promptName() {
         document.write("<th>" + toppings[ind] + "</th>");
     }
     </script>
+    <th>
+        <button onclick="javascript:promptTopping()">+</button>
+    </th>
 </tr>
+</thead>
+<tbody>
    <script  type="text/javascript" >
     for (ind in names) {
-        document.write("<tr>" + createRow(names[ind]) + "</tr>");
+        document.write("<tr class='tablerow'>" + createRow(names[ind]) + "</tr>");
     }
     </script>
+</tbody>
+<tfoot>
 <tr>
 <td>
 <button onclick="javascript:promptName()">+</button>
 </td>
 </tr>
+</tfoot>
 </table>
 <!-- no need for button. everything is caluclated on change 
 <button onclick="javascript:calc();">calc</button> 
