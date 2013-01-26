@@ -31,6 +31,17 @@ html {
     z-index: -1;        
 }
 
+
+button {
+    background: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    -webkit-transition: background .5s;
+}
+button:hover {
+    background: rgb(255,0,0);
+    border-color: #fff;
+}
+
 </style>
 <script data-main="solver" type="text/javascript" src="lib/require.js"></script>
   
@@ -146,20 +157,19 @@ function calc() {
     
        var report = "";
        try {
-        records = solver.parseToRecords(solver.solve(names, toppings, amounts, modulo, all_edible));
-        report = generateReport(records);
-       } catch (err) {
-           report = "Error: " + err.message;
-       }
-        document.getElementById("results").innerHTML =  report;
-        save();
+           records = solver.parseToRecords(solver.solve(names, toppings, amounts, modulo, all_edible));
+           generateReport(records);
+        } catch (err) {            
+            generateReportError(err);
+        }
+       save();
     });
 }
  
 function expectancy(list) {
     var sum = 0;
     for (i = 0; i < list.length;i++)
-    {
+    {   
         sum += list[i];
     }
     return sum / list.length;  
@@ -186,6 +196,17 @@ function getVariance(record) {
 }
 
 function generateReport(records) {
+    report = doReport(records);
+    document.getElementById("results").innerHTML =  report;    
+}
+
+function generateReportError(err) {
+    report = "Error: " + err.message;
+    document.getElementById("results").innerHTML =  report;    
+}
+            
+
+function doReport(records) {
     var report = "";
     
     // sort records by variance, so we get the most diverse pizza first.
