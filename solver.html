@@ -1,8 +1,13 @@
 <html>
 <head>
+<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
 <style>
 .tablerow:hover {
 background-color: rgb(255, 255, 140);
+}
+
+html {
+    font-family: 'Ubuntu', sans-serif;
 }
 </style>
 <script data-main="solver" type="text/javascript" src="lib/require.js"></script>
@@ -129,8 +134,42 @@ function calc() {
     });
 }
  
- function generateReport(records) {
+function expectancy(list) {
+    var sum = 0;
+    for (i = 0; i < list.length;i++)
+    {
+        sum += list[i];
+    }
+    return sum / list.length;  
+}
+
+function variance(list) {
+    
+    var squareL = [];
+    for (i = 0; i < list.length;i++)
+    {
+        squareL.push(list[i] * list[i]);
+    }
+    var avg = expectancy(list);
+    return expectancy(squareL) - (avg * avg);
+}
+
+function getVariance(record) {
+    // we only care about values:
+    values = [];
+    for (k in record) {
+        values.push(record[k]);
+    }
+    return variance(values);
+}
+
+function generateReport(records) {
     var report = "";
+    
+    // sort records by variance, so we get the most diverse pizza first.
+    // (the one that the number of slizes per topping is closest to the average)
+    records.sort(function(a,b){return getVariance(a[0])-getVariance(b[0])});
+    
     for (ind in records) {
     slices = records[ind][0];
     var p = "";
@@ -143,8 +182,8 @@ function calc() {
         }
         p += " ";
     }
-
-    var s = ""
+    // p +=  "(" + getVariance(slices) +")";
+    var s = "";
     for(indr in records[ind][1]) {
         res =  records[ind][1][indr];
         for (indres in res) {
