@@ -3,12 +3,34 @@
 <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
 <style>
 .tablerow:hover {
-background-color: rgb(255, 255, 140);
+background-color: rgba(255, 255, 140, 0.7);
 }
 
 html {
     font-family: 'Ubuntu', sans-serif;
 }
+
+/* from here http://blog.thinkingstiff.com/2012/06/26/highlight-table-column-on-hover-using-css/ */
+#data {
+    overflow: hidden;
+    z-index: 1;
+}
+
+#data td, #data th {
+    position: relative;
+}
+
+.topping-select-cell:hover::after { 
+    background-color: #faf;
+    content: '\00a0';  
+    height: 10000px;    
+    left: 0;
+    position: absolute;  
+    top: -5000px;
+    width: 100%;
+    z-index: -1;        
+}
+
 </style>
 <script data-main="solver" type="text/javascript" src="lib/require.js"></script>
   
@@ -83,7 +105,7 @@ function createRow(name) {
         if (values && values[chId]) {
             checked = values[chId] ? "checked" : "";
         }
-        s+= "<td><input type='checkbox' onchange='javascript:calc();'  id='" +chId+ "' " + checked + "/> </td>";
+        s+= "<td class='topping-select-cell'><input type='checkbox' onchange='javascript:calc();'  id='" +chId+ "' " + checked + "/> </td>";
     }
     return s;
 }
@@ -222,9 +244,9 @@ restoreValues();
 
 function addName(name) {
     names.push(name);
-    var table = document.getElementById("data");
-    var row = table.insertRow(table.rows.length-1);
-    row.className = "tablerow"
+    var table = document.getElementById("data").tBodies[0];
+    var row = table.insertRow(table.rows.length);
+    row.className = "tablerow";
     row.innerHTML = createRow(name);
 }
 
@@ -262,6 +284,31 @@ function promptTopping() {
          addTopping(topp);
          save();
      }
+}
+
+function removeName(index) {
+    names.splice(index, 1);
+    var table = document.getElementById("data").tBodies[0];
+    table.deleteRow(index);
+    save();
+	calc();
+}
+
+function removeTopp(index) {
+    toppings.splice(index, 1);
+    var CELL_PPREFIX_INDEX = 2;
+    var indexInTable = CELL_PPREFIX_INDEX + index;
+    
+    document.getElementById("data").tHead.rows[0].deleteCell(indexInTable);
+    
+    var tableRows = document.getElementById("data").tBodies[0].rows;
+    
+    for (var i = 0; i < tableRows.length; i++) {
+        tableRows[i].deleteCell(indexInTable);
+	}
+	
+	save();
+	calc();
 }
 
 </script>
