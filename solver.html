@@ -3,43 +3,37 @@
 <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
 <style>
 .tablerow:hover {
-background-color: rgba(255, 255, 140, 0.7);
+    background-color: rgba(255, 255, 140, 0.7);
+}
+
+.tablerow {
+    -webkit-transition: background .5s;
+    -moz-transition: background .5s;
+    transition: background .5s;
 }
 
 html {
     font-family: 'Ubuntu', sans-serif;
 }
 
-/* from here http://blog.thinkingstiff.com/2012/06/26/highlight-table-column-on-hover-using-css/ */
-#data {
-    overflow: hidden;
-    z-index: 1;
-}
-
-#data td, #data th {
-    position: relative;
-}
-
-.topping-select-cell:hover::after { 
-    background-color: #faf;
-    content: '\00a0';  
-    height: 10000px;    
-    left: 0;
-    position: absolute;  
-    top: -5000px;
-    width: 100%;
-    z-index: -1;        
-}
-
-
 button {
     background: rgba(0,0,0,0);
     border-color: rgba(0,0,0,0);
     -webkit-transition: background .5s;
+    -moz-transition: background .5s;
+    transition: background .5s;
+    border-radius : 1em;
 }
 button:hover {
-    background: rgb(255,0,0);
     border-color: #fff;
+}
+
+button:hover.add {
+    background: rgb(0,255,0);
+}
+
+button:hover.remove {
+    background: rgb(255,0,0);
 }
 
 </style>
@@ -102,13 +96,23 @@ function getValues() {
 function createRow(name) {
     var values = getValues();
     s = "";
-    s += "<td>" + name + "</td>";
+    
+    var index = names.indexOf(name);
+    removeString = "";
+    if (index >= 0)
+        removeString = '<button class="remove" onclick="removeName(' + index + ')" >-</button>'
+    
+    
+    s += "<td>" + removeString  + name + "</td>";
+    
+    
     var mnt  = "0";
     var mntId = "amnt_"+name;
     if (values && values[mntId]) {
       mnt = values[mntId]
     }
-    s += '<td><input type="number" onchange="javascript:calc();" id="' + mntId + '" min="0" value="'+mnt+'"></td>';
+    
+    s += '<td><input maxlength="2" type="number" onchange="javascript:calc();" id="' + mntId + '" min="0" max="99" value="'+mnt+'"></td>';
 
     for (tind in toppings) {
         var checked = "";
@@ -240,9 +244,9 @@ function doReport(records) {
         s += "<br/>\n";
     }
 
-    report = report + "<details><summary>" + p + "</summary>" + s + "</details>";
+    report = report + "<li><div><details><summary>" + p + "</summary><div>" + s + "</div></details></div></li>";
     }
-    return report;
+    return "<ul>" + report + "</ul>";
 }
 </script>
 
@@ -346,7 +350,7 @@ function removeTopp(index) {
     }
     </script>
     <th>
-        <button onclick="javascript:promptTopping()">+</button>
+        <button class="add" onclick="javascript:promptTopping()" alt="Add topping">+</button>
     </th>
 </tr>
 </thead>
@@ -360,7 +364,7 @@ function removeTopp(index) {
 <tfoot>
 <tr>
 <td>
-<button onclick="javascript:promptName()">+</button>
+<button class="add" onclick="javascript:promptName()" alt="Add name">+</button>
 </td>
 </tr>
 </tfoot>
