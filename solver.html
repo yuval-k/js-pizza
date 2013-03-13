@@ -100,7 +100,7 @@ function createRow(name) {
     var index = names.indexOf(name);
     removeString = "";
     if (index >= 0)
-        removeString = '<button class="remove" onclick="removeName(' + index + ')" >-</button>'
+        removeString = '<button class="remove" onclick="removeName(\'' + name + '\')" >-</button>'
     
     
     s += "<td>" + removeString  + name + "</td>";
@@ -283,13 +283,21 @@ function promptName() {
      }
 }
 
+function createToppingHeader(topp) {
+    
+    var ind = toppings.indexOf(topp);
+    return toppings[ind] + 
+            '<button class="remove" onclick="javascript:removeTopp(\''+toppings[ind]+'\')" alt="Remove topping">-</button>'
+            ;
+}
 
 function addTopping(topp) {
     toppings.push(topp);
     var table = document.getElementById("data");
     
     var toppingHeader = document.createElement('th');
-    	toppingHeader.appendChild(document.createTextNode(topp));
+    	// toppingHeader.appendChild(document.createTextNode(topp));
+    	toppingHeader.innerHTML = createToppingHeader(topp);
     	theadRow = table.tHead.rows[0];
     	// the last element is the + button
     	theadRow.insertBefore(toppingHeader, theadRow.children[theadRow.children.length-1]);
@@ -311,7 +319,8 @@ function promptTopping() {
      }
 }
 
-function removeName(index) {
+function removeName(name) {
+    index = names.indexOf(name);
     names.splice(index, 1);
     var table = document.getElementById("data").tBodies[0];
     table.deleteRow(index);
@@ -319,7 +328,8 @@ function removeName(index) {
 	calc();
 }
 
-function removeTopp(index) {
+function removeTopp(topp) {
+    index = toppings.indexOf(topp); 
     toppings.splice(index, 1);
     var CELL_PPREFIX_INDEX = 2;
     var indexInTable = CELL_PPREFIX_INDEX + index;
@@ -340,15 +350,23 @@ function removeTopp(index) {
 
 </head>
 <body>
+Instructions:
+
+<ul>
+<li>Each person writes how many slices he wants.</li>
+<li>The total amount of slices must devide in 8, so they will make a whole pizza</li>
+<li>Each person checks the toppings he is willing to eat</li>
+<li>The app calculates the available pizza combinations, given that a topping can go on half a pizza (4 slices)</li>
+</ul>
 <table id="data"><thead>
 <tr>
     <th>Name</th>
     <th>Amount</th>
     <script  type="text/javascript" >
     for (ind in toppings) {
-        document.write("<th>" + toppings[ind] + "</th>");
+        document.write("<th>" + createToppingHeader(toppings[ind]) + "</th>");
     }
-    </script>
+</script>
     <th>
         <button class="add" onclick="javascript:promptTopping()" alt="Add topping">+</button>
     </th>
@@ -383,6 +401,9 @@ Results here:
 calc();
 </script>
 
+<footer>
+Based on pyzza. See original python version <a href="https://launchpad.net/pyzza">https://launchpad.net/pyzza</a>
+</footer>
 </body>
 
 </html>

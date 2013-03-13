@@ -1,4 +1,4 @@
-// python version:
+// original python version:
 // https://launchpad.net/pyzza
 
 /*
