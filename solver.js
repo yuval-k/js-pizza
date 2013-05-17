@@ -256,8 +256,8 @@ function putInRecords(records, slices, record) {
             return true;
         }
     }
-    // not found, push it clean..
-    records.push([slices, [res]]);
+    // not found, push it as a new entry for future records..
+    records.push([slices, [record]]);
     return false;
 }
 

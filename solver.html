@@ -1,5 +1,6 @@
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
 <style>
 .tablerow:hover {
@@ -208,45 +209,91 @@ function generateReportError(err) {
     report = "Error: " + err.message;
     document.getElementById("results").innerHTML =  report;    
 }
-            
 
-function doReport(records) {
-    var report = "";
+function slicesToPrettyNumber(num) {
+    if (num == 0) return "0";
+    var wholePizza = Math.floor(num / 8);
+    var leftSlices = num % 8;
+    if ((leftSlices % 4)!= 0) {
+        // this function only handle halves of pizzas... not weird combinations
+        return "" + (num / 8);
+    }
     
-    // sort records by variance, so we get the most diverse pizza first.
-    // (the one that the number of slizes per topping is closest to the average)
-    records.sort(function(a,b){return getVariance(a[0])-getVariance(b[0])});
+    // if there is only one half:
+    if (wholePizza == 0) {
+        return "½";
+    }
     
-    for (ind in records) {
-    slices = records[ind][0];
+    if (leftSlices == 0) {
+        return "" + wholePizza;
+    }
+    
+    return wholePizza + "½";
+    
+}
+            
+function silcesToText(slices) {
     var p = "";
     for (i = 0; i < toppings.length; ++i) {
         var topping = toppings[i];
         if (slices[topping]) {
-            p += topping + ": " + slices[topping];
+            if (p != "") {
+                p += ", ";
+            }
+            
+            var pizza_of = " pizza";
+            if (slices[topping] >= 16) { // 16 = two pizzas
+                pizza_of = " pizzas";
+            }
+            
+            p += slicesToPrettyNumber(slices[topping]) + " " + topping + pizza_of;
+            
         } else {
-            p += topping + ": " + 0;
+         //   p += topping + ": " + 0;
         }
-        p += " ";
     }
-    // p +=  "(" + getVariance(slices) +")";
-    var s = "";
-    for(indr in records[ind][1]) {
-        res =  records[ind][1][indr];
-        for (indres in res) {
-            var record = res[indres];
-            k = record[0];
-            var name = k[0];
-            var topping = k[1];
-            amnt = record[1];
-            s += k + ":" + amnt + "; ";
-        }
-        s += "<br/>\n";
-    }
+    return p;
+}
 
-    report = report + "<li><div><details><summary>" + p + "</summary><div>" + s + "</div></details></div></li>";
+function doReport(records) {
+    var report = "";
+    
+    if (records.length == 0) return "no results";
+    // sort records by variance, so we get the most diverse pizza first.
+    // (the one that the number of slizes per topping is closest to the average)
+    records.sort(function(a,b){return getVariance(a[0])-getVariance(b[0])});
+    firstRecord = records[0];
+    records = records.slice(1);
+    
+    for (ind in records) {
+        slices = records[ind][0];
+        var p = silcesToText(slices);
+        
+        // p +=  "(" + getVariance(slices) +")";
+        var s = "";     
+        // todo: get the first result out as a recommandtion and put all the other results hidden
+        // as extras!!
+        // how do i slice an array in js??
+        // also notify explorer users to download FF or Chrome
+        for(indr in records[ind][1]) {
+            res =  records[ind][1][indr];
+            for (indres in res) {
+                var record = res[indres];
+                k = record[0];
+                var name = k[0];
+                var topping = k[1];
+                amnt = record[1];
+                s += k + ":" + amnt + "; ";
+    
+            }
+            s += "<br/>\n";
+        }
+
+    // this line shows all the possibilites for devision of slices to the people. this maybe useful, but it too much information...
+    //    report = report + "<li><div><details><summary>" + p + "</summary><div>" + s + "</div></details></div></li>";
+          report = report + "<li>" + p + "</li>";
     }
-    return "<ul>" + report + "</ul>";
+    return "<p style='font-size:150%'>Your Pizza Choice is: <strong>" + silcesToText(firstRecord[0]) +"</strong></p>Other possible choices:"+"<ul>" + report + "</ul>";
 }
 </script>
 
@@ -350,18 +397,24 @@ function removeTopp(topp) {
 
 </head>
 <body>
-Instructions:
+<H1>The Pizza slice calculator webapp</H1>
+
+
+<h2>Instructions</h2>
 
 <ul>
 <li>Each person writes how many slices he wants.</li>
 <li>The total amount of slices must devide in 8, so they will make a whole pizza</li>
 <li>Each person checks the toppings he is willing to eat</li>
 <li>The app calculates the available pizza combinations, given that a topping can go on half a pizza (4 slices)</li>
+<li>You can dynamically add or remove names and toppings using the + and - buttons</li>
 </ul>
+<form><fieldset>
+  <legend><h2>Data</h2></legend>
 <table id="data"><thead>
 <tr>
     <th>Name</th>
-    <th>Amount</th>
+    <th>Amount (slices)</th>
     <script  type="text/javascript" >
     for (ind in toppings) {
         document.write("<th>" + createToppingHeader(toppings[ind]) + "</th>");
@@ -386,23 +439,29 @@ Instructions:
 </td>
 </tr>
 </tfoot>
-</table>
+</table></fieldset>
+</form>
 <!-- no need for button. everything is caluclated on change 
 <button onclick="javascript:calc();">calc</button> 
 -->
+<fieldset>
+  <legend><h2>Results</h2></legend>
 
 <div>
-Results here:
+Your Pizza options will appear here.
 <div id="results">
 </div>
 </div>
+  </fieldset>
 
 <script type="text/javascript" >
 calc();
 </script>
 
 <footer>
-Based on pyzza. See original python version <a href="https://launchpad.net/pyzza">https://launchpad.net/pyzza</a>
+<h2>Notes</h2>
+Based on pyzza. See original python version <a href="https://launchpad.net/pyzza">https://launchpad.net/pyzza</a>.<br/>
+See sources in <a href="https://github.com/uvgroovy/js-pizza">github</a>.
 </footer>
 </body>
 
