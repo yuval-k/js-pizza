@@ -15,4 +15,4 @@ The webapp will tell you which pizzas to order!
 No-Server
 ========
 No server side needed!
-just pull and open solver.html!!
+just pull and open index.html!!
