@@ -16,3 +16,4 @@ No-Server
 ========
 No server side needed!
 just pull and open index.html!!
+Or, see it live here: http://htmlpreview.github.io/?https://github.com/uvgroovy/js-pizza/blob/master/index.html
